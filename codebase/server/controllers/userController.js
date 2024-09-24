@@ -3,6 +3,7 @@ const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail")
+const crypto = require("crypto");
 
 //register a user
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
@@ -62,7 +63,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
   }
   const resetToken = user.getResetPasswordToken();
-  await user.save({ validateBeforeSave: false });
+  await user.save({ validateBeforeSave: false });  //The updated user (with the reset token and expiration)
   const resetPasswordUrl = `${req.protocol}://${req.get(
     "host"
   )}/api/v1/password/reset/${resetToken}`;
@@ -73,6 +74,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     await sendEmail({
         email:user.email,
         subject:`Ecommerce Password Recovery`,
+        message:message
 
     });
     res.status(200).json({
@@ -83,7 +85,44 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
   } catch (error) {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-    await user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });  // If sending the email fails, the reset token is removed, 
     return next(new ErrorHandler(error.message,500));
   }
+});
+
+
+exports.resetpassword = catchAsyncErrors(async(req,res,next)=>{
+  //create hash token
+  const resetPasswordToken = crypto
+  .createHash("sha256")
+  .update(req.params.token)
+  .digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire:{$gt : Date.now()}
+  });
+  if (!user) {
+    return next(new ErrorHandler("reset password tokenm is invalid or has been expired.", 404));
+  }
+
+  if(req.body.password !== req.body.confirmPasword){
+    return next(new ErrorHandler("Password does not matched."));
+  }
+
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+  sendToken(user ,200,res);
+});
+
+exports.getUserDetails = catchAsyncErrors(async(req,res,next)=>{
+  const user = await User.findOne({ _id:req.user.id});
+  res.status(200).json({
+    success:true,
+    user
+  })
 });
