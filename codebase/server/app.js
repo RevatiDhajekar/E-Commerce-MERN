@@ -14,6 +14,7 @@ app.use(cookieParser());
 
 app.use("/api/v1",require("./routes/productRoute"));
 app.use("/api/v1",require("./routes/userRoutes"));
+app.use("/api/v1",require("./routes/orderRoute"));
 
 //middleware for errors
 app.use(errorMiddleware);
