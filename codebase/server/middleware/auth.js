@@ -13,13 +13,14 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   }
   const decodedData = jwt.verify(token, process.env.JWT_SECRET);
   console.log(decodedData);
-
   req.user = await User.findById(decodedData.id);
 
   next(); //if the token is valid ,middleware calls next() to pass control to the next middleware or route handler
+  
 });
 
 exports.authorizeRoles = (...roles) => {
+
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(new ErrorHandler(

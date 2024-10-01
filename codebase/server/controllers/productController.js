@@ -9,14 +9,13 @@ exports.createProduct = catchAsyncErrors(async (req, res) => {
   // Create the product using req.body directly (not as a function)
   const product = await Product.create(req.body);
 
-  // Send a success response
   res.status(201).json({
     success: true,
     product,
   });
 });
 
-// Get all Products
+// Get all Products -> admin
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
   const resultsPerPage = 2;
   const productCount = await Product.countDocuments();

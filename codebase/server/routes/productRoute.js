@@ -24,7 +24,6 @@ router
   .route("/admin/product/:id")
   .put(isAuthenticatedUser, authorizeRoles("admin"), updateProduct)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct)
-  .get(getProductDetails);
 
 //not only for admin
 router.route("/product/:id").get(getProductDetails);
