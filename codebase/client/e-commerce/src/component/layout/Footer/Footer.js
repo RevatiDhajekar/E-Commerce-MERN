@@ -19,7 +19,7 @@ const Footer = () => {
         <p>Copyrights 2024 &copy; RevatiD</p>
         </div>
 
-        <div class="rightfooter">
+        <div className="rightfooter">
         <h4>Follow Us.</h4>
         <a href="">Instagram</a>
         <a href="">Youtube</a>
